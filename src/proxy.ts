@@ -1,13 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
+// 1. Define which routes are accessible to guests without logging in
 const isPublicRoute = createRouteMatcher(['/sign-in(.*)'])
 
+// 2. Intercept every incoming request
 export default clerkMiddleware(async (auth, req) => {
     if (!isPublicRoute(req)) {
-        await auth.protect()
+        await auth.protect() // If not signed in, halt and redirect to /sign-in
     }
 })
 
+// 3. Matcher: tell Next.js which paths to intercept
 export const config = {
     matcher: [
         // Skip Next.js internals and all static files, unless found in search params
