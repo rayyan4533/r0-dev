@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { ClerkProvider } from '@clerk/nextjs'
 
 const playfairDisplayHeading = Playfair_Display({ subsets: ['latin'], variable: '--font-heading' });
 
@@ -39,15 +40,17 @@ export default function RootLayout({
     >
 
       <body className="flex flex-col min-h-full">
-        <QueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange>
-            {children}
-          </ThemeProvider >
-        </QueryProvider>
+        <ClerkProvider>
+          <QueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange>
+              {children}
+            </ThemeProvider >
+          </QueryProvider>
+        </ClerkProvider>
       </body>
 
     </html >
