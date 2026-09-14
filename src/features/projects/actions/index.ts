@@ -4,10 +4,10 @@ import { inngest } from "@/features/inngest/client";
 import { generateSlug } from "random-word-slugs";
 import { db } from "@/prisma/db";
 
-export const MessageRole = db.enums.public.MessageRole.members;
-export const MessageType = db.enums.public.MessageType.members;
-export type MessageRole = (typeof MessageRole)[keyof typeof MessageRole];
-export type MessageType = (typeof MessageType)[keyof typeof MessageType];
+const MessageRole = db.enums.public.MessageRole.members;
+const MessageType = db.enums.public.MessageType.members;
+type MessageRole = (typeof MessageRole)[keyof typeof MessageRole];
+type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
 export const createProject = async (value: string) => {
     const user = await getCurrentUser();
@@ -31,18 +31,17 @@ export const createProject = async (value: string) => {
                 type: MessageType.RESULT,
                 projectId: newProject.id,
             });
-            await inngest.send({
-                name: "code-agent/run",
-                data: {
-                    value,
-                    projectId: project.id
-                }
-            })
 
             return newProject;
         });
 
-        // TODO: Send the project to the inngest 
+        await inngest.send({
+            name: "code-agent/run",
+            data: {
+                value,
+                projectId: project.id,
+            },
+        });
 
         return project;
 

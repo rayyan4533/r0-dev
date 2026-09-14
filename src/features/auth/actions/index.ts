@@ -6,13 +6,9 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 
 
 export async function onBoardUser() {
-    const { userId } = await auth();
-
-    if (!userId) return;
-
     const clerkUser = await currentUser();
 
-    if (!clerkUser) return;
+    if (!clerkUser) return null;
 
     const email =
         clerkUser.primaryEmailAddress?.emailAddress ??
@@ -23,9 +19,9 @@ export async function onBoardUser() {
         clerkUser.fullName ??
         ([clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || null);
 
-    await db.orm.public.User.upsert({
+    return await db.orm.public.User.upsert({
         create: {
-            clerkId: userId,
+            clerkId: clerkUser.id,
             email,
             firstName: clerkUser.firstName,
             lastName: clerkUser.lastName,
@@ -39,23 +35,30 @@ export async function onBoardUser() {
             name,
             imageUrl: clerkUser.imageUrl,
         },
-        conflictOn: { clerkId: userId },
+        conflictOn: { clerkId: clerkUser.id },
     });
 }
 
 export const getCurrentUser = async () => {
     try {
-        const user = await currentUser();
+        const clerkUser = await currentUser();
 
-        if (!user) {
+        if (!clerkUser) {
             return null;
         }
 
-        const dbUser = await db.orm.public.User
+        let dbUser = await db.orm.public.User
+            .where({ clerkId: clerkUser.id })
             .select("id", "email", "name", "imageUrl", "clerkId")
-            .first({
-                clerkId: user.id,
-            });
+            .first();
+
+        if (!dbUser) {
+            await onBoardUser();
+            dbUser = await db.orm.public.User
+                .where({ clerkId: clerkUser.id })
+                .select("id", "email", "name", "imageUrl", "clerkId")
+                .first();
+        }
 
         return dbUser;
     } catch (error) {

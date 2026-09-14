@@ -18,6 +18,7 @@ import {
   getRandomPromptTemplate,
   promptTemplateCategories,
 } from "@/components/home/prompt-templates";
+import { useCreateProject } from "@/features/projects/hooks/projects";
 
 /**
  * Main prompt composer on the home page.
@@ -29,10 +30,20 @@ import {
 export function PromptInput() {
   const [prompt, setPrompt] = useState("");
   const router = useRouter();
- const isPending = false;
+  const createProject = useCreateProject();
+  const isPending = createProject.isPending;
 
   function handleSubmit() {
-   
+    if (!prompt.trim() || isPending) return;
+
+    createProject.mutate(prompt.trim(), {
+      onSuccess: (project) => {
+        router.push(`/projects/${project.id}`);
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to create project");
+      },
+    });
   }
 
   /**
@@ -59,7 +70,7 @@ export function PromptInput() {
           onChange={(event) => setPrompt(event.target.value)}
           placeholder="Ask chai0 to build..."
           rows={4}
-          // disabled={isPending}
+          disabled={isPending}
           className="min-h-24 px-4 pt-4 text-sm"
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {

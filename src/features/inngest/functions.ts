@@ -1,3 +1,6 @@
+import dns from "node:dns";
+dns.setDefaultResultOrder?.("ipv4first");
+
 import { db } from "@/prisma/db";
 import { inngest } from "./client";
 import { Sandbox } from "@e2b/code-interpreter";
@@ -37,7 +40,8 @@ export const codeAgentFunction = inngest.createFunction(
     async ({ event, step }) => {
         const sandboxId = await step.run("get-sandbox-id", async () => {
             const sandbox = await Sandbox.create({
-                template: "ugwj9f6y2wocdpps7omf"
+                template: process.env.E2B_TEMPLATE_ID || "ugwj9f6y2wocdpps7omf",
+                apiKey: process.env.E2B_API_KEY || "e2b_bf8e535c13c02ee0355eaee8255e06bebd54d593",
             });
 
             return sandbox.sandboxId;
@@ -66,8 +70,10 @@ export const codeAgentFunction = inngest.createFunction(
             { messages: previousMessages }
         );
 
+        const modelName = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+
         const geminiModel = gemini({
-            model: "gemini-2.5-flash",
+            model: modelName,
             step,
             apiKey: process.env.GEMINI_API_KEY!,
             defaultParameters: {
@@ -78,13 +84,13 @@ export const codeAgentFunction = inngest.createFunction(
                 }
             }
         } as Parameters<typeof gemini>[0]
-        )
+        );
 
         const codeAgent = createAgent({
             name: "code-agent",
             description: "An expert coding agent",
             system: PROMPT,
-            model: gemini({ model: "gemini-2.5-flash" }),
+            model: gemini({ model: modelName, apiKey: process.env.GEMINI_API_KEY! }),
             tools: [
                 // 1. Terminal
                 createTool({
@@ -161,7 +167,41 @@ export const codeAgentFunction = inngest.createFunction(
                         }
                     },
                 }),
-                // 3. readFiles
+
+                // 3. createOrUpdateFile (singular)
+                createTool({
+                    name: "createOrUpdateFile",
+                    description: "Create or update a single file in the sandbox",
+                    parameters: z.object({
+                        path: z.string(),
+                        content: z.string(),
+                    }),
+
+                    handler: async ({ path, content }, { step, network }) => {
+                        const newFiles = await step?.run(
+                            `createOrUpdateFile-${path.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+                            async () => {
+                                try {
+                                    const updatedFiles = network?.state?.data.files || {};
+                                    const sanbox = await Sandbox.connect(sandboxId);
+
+                                    await sanbox.files.write(path, content);
+                                    updatedFiles[path] = content;
+
+                                    return updatedFiles;
+                                } catch (error) {
+                                    return "Error" + error;
+                                }
+                            }
+                        );
+
+                        if (typeof newFiles === "object") {
+                            network.state.data.files = newFiles;
+                        }
+                    },
+                }),
+
+                // 4. readFiles
                 createTool({
                     name: "readFiles",
                     description: "Read files in the sandbox",
@@ -285,5 +325,4 @@ export const codeAgentFunction = inngest.createFunction(
             url: sandboxUrl, title: fragmentTitle, files, summary
         }
     }
-
-)
+);

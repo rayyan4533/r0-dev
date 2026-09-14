@@ -64,7 +64,9 @@ export function captureTaskSummary(
 }
 
 export async function connectSandbox(sandboxId: string) {
-    return Sandbox.connect(sandboxId);
+    return Sandbox.connect(sandboxId, {
+        apiKey: process.env.E2B_API_KEY || "e2b_bf8e535c13c02ee0355eaee8255e06bebd54d593",
+    });
 }
 
 
