@@ -13,7 +13,7 @@ description: >-
   you see @internal/* or @prisma/orm-* imports, prisma.config.ts with
   definePrismaConfig, or contract.json / contract.d.ts. Do not use for Prisma
   ORM 7 or earlier (schema.prisma + @prisma/client).
-metadata:
+metadata: 
   library: '@prisma/orm-postgres'
   library_version: '8.0.0-rc.11'
   version: '2026-09-12'

@@ -1,6 +1,6 @@
 // src/app/api/inngest/route.ts
-import { inngest } from "@/feature/inngest/client";
-import { processTask } from "@/feature/inngest/functions";
+import { inngest } from "@/features/inngest/client";
+import { processTask } from "@/features/inngest/functions";
 import { serve } from "inngest/next";
 
 

@@ -2,20 +2,66 @@
 
 model User {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
+  clerkId   String   @unique
+  email     String?  @unique
+  firstName String?
+  lastName  String?
   name      String?
-  posts     Post[]
+  imageUrl  String?
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  projects Project[]
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  messages Message[]
+}
+
+enum MessageRole {
+  @@type("pg/text@1")
+  USER      = "USER"
+  ASSISTANT = "ASSISTANT"
+}
+
+enum MessageType {
+  @@type("pg/text@1")
+  RESULT = "RESULT"
+  ERROR  = "ERROR"
+}
+
+model Message {
+  id      String      @id @default(uuid())
+  content String
+  role    MessageRole
+  type    MessageType
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fragments Fragment?
+}
+
+model Fragment {
+  id        String  @id @default(uuid())
+  messageId String  @unique
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  sandboxUrl String
+  title      String
+  files      Json
+
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
-}
