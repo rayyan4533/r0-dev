@@ -31,6 +31,13 @@ export const createProject = async (value: string) => {
                 type: MessageType.RESULT,
                 projectId: newProject.id,
             });
+            await inngest.send({
+                name: "code-agent/run",
+                data: {
+                    value,
+                    projectId: project.id
+                }
+            })
 
             return newProject;
         });

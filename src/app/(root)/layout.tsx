@@ -1,13 +1,10 @@
-import { onBoardUser } from "@/features/auth/actions"
-
-
-
+import { onBoardUser } from "@/features/auth/actions";
 
 
 export default async function RootGroupLayout({
     children,
 }: Readonly<{
-    children: React.ReactNode
+    children: React.ReactNode;
 }>) {
     await onBoardUser();
 
