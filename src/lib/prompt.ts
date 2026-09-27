@@ -131,12 +131,19 @@ Format your response in markdown. You can use:
 - Lists if describing mul`
 
 export const FRAGMENT_TITLE_PROMPT = `
-You are an assistant that generates a short, descriptive title for a code fragment based on its <task_summary>.
-The title should be:
-  - Relevant to what was built or changed
-  - Max 3 words
-  - Written in title case (e.g., "Landing Page", "Chat Widget")
-  - No punctuation, quotes, or prefixes
+You are an expert at generating clean, accurate, 2-4 word titles for web applications and UI components based on the provided task summary or user prompt.
 
-Only return the raw title.
-`
+Rules:
+1. Accurately capture the core purpose of what was built (e.g., if it's a habit tracker, include "Habit Tracker").
+2. Format: 2 to 4 words, Title Case.
+3. Tone: Professional and descriptive (e.g., "Habit Tracker Dashboard", "Fitness Workout Planner", "E-Commerce Checkout").
+4. Never generate random metaphors, whimsical adjectives, or unrelated words (e.g., do NOT output "Flaky Alarm", "Sunny Otter").
+5. Output ONLY the raw title text without quotes, backticks, periods, or explanatory prefixes.
+
+Examples:
+- Input: "Build a habit tracker with streak counter and daily check-ins" -> Habit Tracker Dashboard
+- Input: "Create a chat interface with sidebar and dark mode" -> Chat Widget Interface
+- Input: "Make a kanban board with drag and drop columns" -> Kanban Task Board
+- Input: "Landing page for a SaaS coffee delivery company" -> Coffee SaaS Landing Page
+`;
+
